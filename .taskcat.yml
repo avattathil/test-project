@@ -1,0 +1,16 @@
+project:
+  name: test-project
+  regions:
+  - us-east-1
+  - us-west-2
+  s3_bucket: tonynv
+tests:
+  default:
+    template: templates/template.yml
+    parameters:
+      BucketName: "$[taskcat_autobucket]"
+      AccessCIDR: "0.0.0.0/0"
+      AvailabilityZones: "$[taskcat_getaz_2]"
+      KeyPairName: "default"
+
+
