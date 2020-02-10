@@ -103,6 +103,7 @@ Resources:
           S3Bucket: !Sub '${BucketName}-${AWS::Region}'
       Parameters:
         BucketName: !Ref BucketName
+        KeyPrefix: !Ref KeyPrefix
         KeyPairName: !Ref KeyPairName
         AccessCIDR: !Ref AccessCIDR
         SubnetId:
