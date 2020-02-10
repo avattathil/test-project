@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'S3 Authenticated bootstrapping Example (qs-tb2p0t02)'
+Description: "Workload Template using Sigv2 S3 URLS"
 Metadata:
   LICENSE: 'Apache License, Version 2.0' 
   AUTHOR: 'Tony Vattathil'
@@ -122,7 +122,7 @@ Resources:
     Type: 'AWS::EC2::Instance'
     Properties:
       IamInstanceProfile: !Ref RootInstanceProfile
-      ImageId: !FindInMap 
+      ImageId: !FindInMap
         - AWSAMIRegionMap
         - !Ref 'AWS::Region'
         - US1604HVM
@@ -132,7 +132,7 @@ Resources:
         - !Ref InstanceSecurityGroup
       SubnetId: !Ref SubnetId
       UserData: !Base64
-          Fn::Sub: 
+          Fn::Sub:
           - |
             #!/bin/bash -x
             #cfn signaling functions
@@ -159,15 +159,15 @@ Resources:
             echo "[INFO] Executing config-sets";
             cfn-init -v --stack ${AWS::StackName} --resource ExampleInstance --configsets ec2_bootstrap --region ${AWS::Region} || cfn_fail;
             [ $(qs_status) == 0 ] && cfn_success || cfn_fail
-          -  
+          -
             S3Region: !If [ GovCloudCondition, s3-us-gov-west-1, s3 ]
     Metadata:
-      AWS::CloudFormation::Authentication: 
-        S3AccessCreds: 
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
           type: S3
-          buckets: 
+          buckets:
             - !Sub ${BucketName}
-          roleName: 
+          roleName:
             Ref: RootRole
       AWS::CloudFormation::Init:
         configSets:

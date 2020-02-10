@@ -1,4 +1,4 @@
-Description: "VPC + S3 Authenticated bootstrapping Example (qs-tb2p0t01)"
+Description: "Master (+VPC) Template using Sigv2 S3 URLS"
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
@@ -70,24 +70,32 @@ Parameters:
   BucketName:
     AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
     ConstraintDescription: "Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-)."
-    Default: tonynv
+    Default: aws-quickstart
     Description: "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-)."
     Type: String
   KeyPrefix:
     AllowedPattern: "^[0-9a-zA-Z-/]*$"
     ConstraintDescription: "Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/)."
-    Default: test-project/
+    Default: cfn-authenticated-s3-example/
     Description: "S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/)."
     Type: String
+Conditions:
+  GovCloudCondition: !Equals 
+    - !Ref 'AWS::Region'
+    - us-gov-west-1
 Resources:
   VPCStack:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       TemplateURL: !Sub
-        - https://${BucketName}.${S3Region}.amazonaws.com/${KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
-        - S3Region: !Sub 's3.${AWS::Region}'
+        - https://${BucketName}.${Region}.amazonaws.com/${KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
+        - Region:
+            Fn::If:
+            - GovCloudCondition
+            - s3-us-gov-west-1
+            - s3
       Parameters:
-        AvailabilityZones: !Join
+        AvailabilityZones: !Join 
           - ','
           - !Ref AvailabilityZones
         KeyPairName: !Ref KeyPairName
@@ -99,9 +107,10 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${BucketName}.${S3Region}.amazonaws.com/${KeyPrefix}templates/authenticated-s3.template.yaml
-        - S3Region: !Sub 's3.${AWS::Region}'
+        - https://${BucketName}.${Region}.amazonaws.com/${KeyPrefix}templates/authenticated-s3.template.yaml
+        - Region: !If [GovCloudCondition , s3-us-gov-west-1 , s3]
       Parameters:
+        KeyPrefix: !Ref KeyPrefix
         BucketName: !Ref BucketName
         KeyPairName: !Ref KeyPairName
         AccessCIDR: !Ref AccessCIDR
